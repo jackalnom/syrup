@@ -318,6 +318,9 @@
         let paused = false;
         let lastFrameTime = Date.now();
         let fps = 0;
+        let cachedTerrainImage = null;
+        let lastHeightScale = params.heightScale;
+        let lastBrightness = params.brightness;
         
         // Fluid cell structure: { x, y, height, color: {r, g, b}, vx, vy }
         
@@ -366,6 +369,9 @@
                     
                     // Apply smoothness
                     applySmoothing();
+                    
+                    // Invalidate terrain cache
+                    cachedTerrainImage = null;
                 };
                 img.src = e.target.result;
             };
@@ -514,24 +520,31 @@
             
             // Render terrain
             if (heightMap) {
-                const imageData = ctx.createImageData(width, height);
-                const pixels = imageData.data;
-                
-                const brightnessFactor = params.brightness / 50;
-                
-                for (let x = 0; x < width; x++) {
-                    for (let y = 0; y < height; y++) {
-                        const idx = (y * width + x) * 4;
-                        const h = (heightMap[x][y] * params.heightScale) / 100;
-                        const shade = Math.floor((h / 255) * 200 * brightnessFactor) + 30;
-                        pixels[idx] = shade;
-                        pixels[idx + 1] = shade;
-                        pixels[idx + 2] = shade;
-                        pixels[idx + 3] = 255;
+                // Cache terrain rendering if parameters haven't changed
+                if (!cachedTerrainImage || lastHeightScale !== params.heightScale || lastBrightness !== params.brightness) {
+                    const imageData = ctx.createImageData(width, height);
+                    const pixels = imageData.data;
+                    
+                    const brightnessFactor = params.brightness / 50;
+                    
+                    for (let x = 0; x < width; x++) {
+                        for (let y = 0; y < height; y++) {
+                            const idx = (y * width + x) * 4;
+                            const h = (heightMap[x][y] * params.heightScale) / 100;
+                            const shade = Math.floor((h / 255) * 200 * brightnessFactor) + 30;
+                            pixels[idx] = shade;
+                            pixels[idx + 1] = shade;
+                            pixels[idx + 2] = shade;
+                            pixels[idx + 3] = 255;
+                        }
                     }
+                    
+                    cachedTerrainImage = imageData;
+                    lastHeightScale = params.heightScale;
+                    lastBrightness = params.brightness;
                 }
                 
-                ctx.putImageData(imageData, 0, 0);
+                ctx.putImageData(cachedTerrainImage, 0, 0);
             }
             
             // Sort fluid cells by height (back to front)
