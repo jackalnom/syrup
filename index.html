@@ -229,7 +229,7 @@
         <div class="main-content">
             <div class="canvas-container">
                 <canvas id="canvas" width="800" height="600"></canvas>
-                <p style="margin-top: 10px; color: #666;">Click on the canvas to add fluid (colors match uploaded image)</p>
+                <p style="margin-top: 10px; color: #666;">Upload an image to see its colors flow as liquid</p>
             </div>
             
             <div class="controls">
@@ -381,6 +381,9 @@
                     
                     // Invalidate terrain cache
                     cachedTerrainImage = null;
+                    
+                    // Initialize fluid from image colors
+                    initializeFluidFromImage();
                 };
                 img.src = e.target.result;
             };
@@ -450,6 +453,39 @@
                 g: Math.random() * 200 + 55,
                 b: Math.random() * 200 + 55
             };
+        }
+        
+        // Initialize fluid particles from the uploaded image colors
+        function initializeFluidFromImage() {
+            // Clear existing fluid
+            fluidCells = [];
+            
+            if (!colorMap) return;
+            
+            // Sample pixels from the image to create fluid particles
+            // Use a grid sampling approach to get good coverage without too many particles
+            const samplingStep = 8; // Sample every 8 pixels
+            
+            for (let x = 0; x < width; x += samplingStep) {
+                for (let y = 0; y < height; y += samplingStep) {
+                    const color = colorMap[x][y];
+                    
+                    // Skip very dark pixels (mostly black background)
+                    const brightness = (color.r + color.g + color.b) / 3;
+                    if (brightness < 20) continue;
+                    
+                    // Create fluid particle at this position
+                    // Start slightly above the terrain
+                    fluidCells.push({
+                        x: x,
+                        y: y,
+                        height: getHeight(x, y) + 10,
+                        color: color,
+                        vx: 0,
+                        vy: 0
+                    });
+                }
+            }
         }
         
         // Add fluid at position
