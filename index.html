@@ -468,6 +468,9 @@
             
             for (let x = 0; x < width; x += samplingStep) {
                 for (let y = 0; y < height; y += samplingStep) {
+                    // Bounds check to prevent array access errors
+                    if (x >= width || y >= height || !colorMap[x] || !colorMap[x][y]) continue;
+                    
                     const color = colorMap[x][y];
                     
                     // Skip very dark pixels (mostly black background)
