@@ -282,7 +282,7 @@
                 
                 <div class="button-group">
                     <button class="btn btn-primary" id="pauseBtn">Pause</button>
-                    <button class="btn btn-secondary" id="resetFluidBtn">Clear Fluid</button>
+                    <button class="btn btn-secondary" id="resetFluidBtn">Reset</button>
                 </div>
                 
                 <div class="stats">
@@ -316,6 +316,7 @@
         let heightMap = null;
         let colorMap = null; // Store color data from uploaded PNG
         let fluidCells = [];
+        let initialFluidState = []; // Store initial fluid state for reset
         let paused = false;
         let lastFrameTime = Date.now();
         let fps = 0;
@@ -462,14 +463,12 @@
             
             if (!colorMap) return;
             
-            // Sample pixels from the image to create fluid particles
-            // Use a grid sampling approach to get good coverage without too many particles
-            const samplingStep = 8; // Sample every 8 pixels
-            
-            for (let x = 0; x < width; x += samplingStep) {
-                for (let y = 0; y < height; y += samplingStep) {
+            // Create fluid for EVERY pixel to match the original image exactly
+            // This ensures the image looks identical when first loaded
+            for (let x = 0; x < width; x++) {
+                for (let y = 0; y < height; y++) {
                     // Bounds check to prevent array access errors
-                    if (x >= width || y >= height || !colorMap[x] || !colorMap[x][y]) continue;
+                    if (!colorMap[x] || !colorMap[x][y]) continue;
                     
                     const color = colorMap[x][y];
                     
@@ -478,17 +477,27 @@
                     if (brightness < 20) continue;
                     
                     // Create fluid particle at this position
-                    // Start slightly above the terrain
+                    // Start at the exact position to match the image
                     fluidCells.push({
                         x: x,
                         y: y,
-                        height: getHeight(x, y) + 10,
+                        height: getHeight(x, y) + 1,
                         color: color,
                         vx: 0,
                         vy: 0
                     });
                 }
             }
+            
+            // Store initial state for reset functionality
+            initialFluidState = fluidCells.map(cell => ({
+                x: cell.x,
+                y: cell.y,
+                height: cell.height,
+                color: { ...cell.color },
+                vx: 0,
+                vy: 0
+            }));
         }
         
         // Add fluid at position
@@ -702,7 +711,20 @@
         });
         
         document.getElementById('resetFluidBtn').addEventListener('click', function() {
-            fluidCells = [];
+            // Reset to initial fluid state (restore the original image)
+            if (initialFluidState.length > 0) {
+                fluidCells = initialFluidState.map(cell => ({
+                    x: cell.x,
+                    y: cell.y,
+                    height: cell.height,
+                    color: { ...cell.color },
+                    vx: 0,
+                    vy: 0
+                }));
+            } else {
+                // No initial state, just clear
+                fluidCells = [];
+            }
         });
         
         // Initialize and start
