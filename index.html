@@ -229,7 +229,7 @@
         <div class="main-content">
             <div class="canvas-container">
                 <canvas id="canvas" width="800" height="600"></canvas>
-                <p style="margin-top: 10px; color: #666;">Click on the canvas to add fluid (fluid color matches the image)</p>
+                <p style="margin-top: 10px; color: #666;">Click on the canvas to add fluid (colors match uploaded image)</p>
             </div>
             
             <div class="controls">
@@ -432,23 +432,24 @@
         function getColor(x, y) {
             if (!colorMap) {
                 // No image uploaded, return random color
-                return {
-                    r: Math.random() * 200 + 55,
-                    g: Math.random() * 200 + 55,
-                    b: Math.random() * 200 + 55
-                };
+                return getRandomColor();
             }
             x = Math.floor(x);
             y = Math.floor(y);
             if (x < 0 || x >= width || y < 0 || y >= height) {
                 // Out of bounds, return random color
-                return {
-                    r: Math.random() * 200 + 55,
-                    g: Math.random() * 200 + 55,
-                    b: Math.random() * 200 + 55
-                };
+                return getRandomColor();
             }
             return colorMap[x][y];
+        }
+        
+        // Generate a random color
+        function getRandomColor() {
+            return {
+                r: Math.random() * 200 + 55,
+                g: Math.random() * 200 + 55,
+                b: Math.random() * 200 + 55
+            };
         }
         
         // Add fluid at position
