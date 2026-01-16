@@ -229,7 +229,7 @@
         <div class="main-content">
             <div class="canvas-container">
                 <canvas id="canvas" width="800" height="600"></canvas>
-                <p style="margin-top: 10px; color: #666;">Click on the canvas to add fluid</p>
+                <p style="margin-top: 10px; color: #666;">Click on the canvas to add fluid (fluid color matches the image)</p>
             </div>
             
             <div class="controls">
@@ -314,6 +314,7 @@
         
         // Simulation state
         let heightMap = null;
+        let colorMap = null; // Store color data from uploaded PNG
         let fluidCells = [];
         let paused = false;
         let lastFrameTime = Date.now();
@@ -357,13 +358,21 @@
                     const pixels = imageData.data;
                     
                     heightMap = new Array(width);
+                    colorMap = new Array(width);
                     for (let x = 0; x < width; x++) {
                         heightMap[x] = new Array(height);
+                        colorMap[x] = new Array(height);
                         for (let y = 0; y < height; y++) {
                             const idx = (y * width + x) * 4;
                             // Use brightness as height
                             const brightness = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
                             heightMap[x][y] = brightness;
+                            // Store RGB color data
+                            colorMap[x][y] = {
+                                r: pixels[idx],
+                                g: pixels[idx + 1],
+                                b: pixels[idx + 2]
+                            };
                         }
                     }
                     
@@ -419,13 +428,32 @@
             return (heightMap[x][y] * params.heightScale) / 100;
         }
         
+        // Get color at position from uploaded image
+        function getColor(x, y) {
+            if (!colorMap) {
+                // No image uploaded, return random color
+                return {
+                    r: Math.random() * 200 + 55,
+                    g: Math.random() * 200 + 55,
+                    b: Math.random() * 200 + 55
+                };
+            }
+            x = Math.floor(x);
+            y = Math.floor(y);
+            if (x < 0 || x >= width || y < 0 || y >= height) {
+                // Out of bounds, return random color
+                return {
+                    r: Math.random() * 200 + 55,
+                    g: Math.random() * 200 + 55,
+                    b: Math.random() * 200 + 55
+                };
+            }
+            return colorMap[x][y];
+        }
+        
         // Add fluid at position
         function addFluid(x, y) {
-            const color = {
-                r: Math.random() * 200 + 55,
-                g: Math.random() * 200 + 55,
-                b: Math.random() * 200 + 55
-            };
+            const color = getColor(x, y);
             
             for (let i = 0; i < params.fluidAmount; i++) {
                 const angle = Math.random() * Math.PI * 2;

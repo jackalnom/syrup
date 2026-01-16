@@ -8,13 +8,13 @@ A browser-based real-time physics simulation where uploaded PNG images become he
 - 💧 **Viscous Fluid Physics**: High-viscosity, non-mixing colored liquids that flow realistically
 - 🎨 **Layer Stacking**: Fluids can stack on top of each other without mixing
 - 🎛️ **Real-Time Controls**: Adjust all parameters with interactive sliders while the simulation runs
-- 🖱️ **Interactive**: Click anywhere on the canvas to add fluid
+- 🖱️ **Interactive**: Click anywhere on the canvas to add fluid (fluid color matches the uploaded image's pixel color)
 
 ## Usage
 
 1. Open `index.html` in a modern web browser
 2. Upload a PNG image to use as terrain (optional - a default bowl shape is provided)
-3. Click on the canvas to add fluid particles
+3. Click on the canvas to add fluid particles - the fluid color will match the pixel color from the uploaded image
 4. Use the sliders to adjust:
    - **Height Scale**: Controls how dramatic the terrain elevation is
    - **Smoothness**: Smooths out the terrain (0 = no smoothing)
