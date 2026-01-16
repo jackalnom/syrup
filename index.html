@@ -463,10 +463,12 @@
             
             if (!colorMap) return;
             
-            // Create fluid for EVERY pixel to match the original image exactly
-            // This ensures the image looks identical when first loaded
-            for (let x = 0; x < width; x++) {
-                for (let y = 0; y < height; y++) {
+            // Sample particles sparsely to maintain performance
+            // Use every Nth pixel to create a representative sampling
+            const sampleRate = 3; // Sample every 3rd pixel (reduces particles by ~89%)
+            
+            for (let x = 0; x < width; x += sampleRate) {
+                for (let y = 0; y < height; y += sampleRate) {
                     // Bounds check to prevent array access errors
                     if (!colorMap[x] || !colorMap[x][y]) continue;
                     
@@ -545,32 +547,16 @@
                 cell.vx += -gradX * gravityForce * flowSpeed * dt;
                 cell.vy += -gradY * gravityForce * flowSpeed * dt;
                 
-                // Check for fluid stacking (fluid rests on other fluid)
-                let stackedHeight = terrainHeight;
-                for (let j = 0; j < fluidCells.length; j++) {
-                    if (i !== j) {
-                        const other = fluidCells[j];
-                        const dx = cell.x - other.x;
-                        const dy = cell.y - other.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (dist < 3) {
-                            // Fluid particles are close, can stack
-                            if (other.height > stackedHeight) {
-                                stackedHeight = Math.max(stackedHeight, other.height);
-                            }
-                        }
-                    }
-                }
-                
-                // Settle fluid on terrain or other fluid
-                if (cell.height > stackedHeight + 1) {
+                // Settle fluid on terrain
+                // Removed expensive O(N²) stacking check for performance
+                const targetHeight = terrainHeight + 1;
+                if (cell.height > targetHeight) {
                     cell.height -= gravityForce * dt * 10;
-                    if (cell.height < stackedHeight + 1) {
-                        cell.height = stackedHeight + 1;
+                    if (cell.height < targetHeight) {
+                        cell.height = targetHeight;
                     }
                 } else {
-                    cell.height = stackedHeight + 1;
+                    cell.height = targetHeight;
                 }
                 
                 // Apply viscosity (damping)
